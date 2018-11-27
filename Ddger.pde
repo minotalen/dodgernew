@@ -6,7 +6,8 @@ class Dodger {
   float a;
   float size = dodgerSize;
   float vel = startVel;
-                         // scales dodger aura
+  float auraTrans = 0;
+                     // scales dodger aura
 
   Dodger (float _x, float _y, float _a) {
     pos = new PVector(_x, _y);
@@ -23,7 +24,13 @@ class Dodger {
     // float auraSize = 1 + map(score, 0, highScore + 10, 0, 2);
 
     pg.noStroke();
-    pg.fill(255, 255, 255, 50);
+    // if(!clockwise){
+    //   pg.fill(255, 255, 255, 35);
+    // } else {
+    //   pg.fill(255, 255, 255, 45);
+    // }
+    auraTrans = (map(abs(rotVel), 0, 110, 30, 55) + auraTrans)/2;
+    pg.fill(255, 255, 255, auraTrans);
     if(!scrType) {
       pg.ellipse(0, 0, 2*size*(                             score% 9 /9 * scale/7),                       2*size*(     score% 9 /9 * scale/7) );
       pg.ellipse(0, 0, 2*size*(                ((score- (score%9))/9)%9/9 * scale/5),              2*size*( ((score- (score%9))/9)%9/9 * scale/5) );
@@ -55,7 +62,7 @@ class Dodger {
     pg.strokeWeight(6);
     pg.line(-0.5 * size, -1 * size, 0, 1 * size);
     pg.line(0.5 * size, -1 * size, 0, 1 * size);
-    // pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
+    pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
     pg.popMatrix();
   }
 

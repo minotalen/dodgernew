@@ -10,7 +10,7 @@ boolean muted = false;
 //prepare scaling screen to fixed resolution
 PGraphics pg;
 int pgWidth = 1920;
-int pgHeight = 1080;
+int pgHeight = 980;
 
 PShape logo;
 PShape logoOutline;
@@ -54,19 +54,20 @@ PVector highScorePosition;
 int maxE = 30;
 Enemy[] enemies = new Enemy[maxE];
 int eNum;                             // index of current obstacle
-int sActive = 10;                      // enemies active at start
+int sActive = 11;                      // enemies active at start
 int enemiesPerScore = 30;             // amount of score necessary to increase sActive by one
 int eActive;                          // enemies currently active
 float limiter;                        // makes the arrow more narrow
 float startEVel;                      // beginning velocity of enemies, increases by scEVel for every score
 float scEVel;
-float startSize = 25;                 // beginning size of enemies, increases by scESize for every score
-float scESize = 0.015;
+float startSize = 22;                 // beginning size of enemies, increases by scESize for every score
+float scESize = 0.01;
 float obstacleDrain = 0.5;            // velocity of obstacle after aura was harvested
 float obstacleRDrain = 0.4;           // rotation of obstacle after aura was harvested
 float shipChance, shipVal;            // chance to spawn ship instead of asteroid
 float kamiChance, kamiVal;            // chance to spawn kamikaze, starts at 0 increases with score
-float chanceModifier = 1/500;         // number by which the chance for obstacle types gets modified
+float onoffChance, onoffVal;          // chance to spawn onoff, starts at 0 increases with score
+float chanceModifier = 0.001;         // number by which the chance for obstacle types gets modified
 boolean bossActive = false;           // tells us if there is a boss on the field
 int bossNumber;                       // cycles through the bosses
 int nextBossNumber;
@@ -76,16 +77,15 @@ float modifier;                       // used to modify some starting values
 float circleFactor = 1.4;             // size of aura per obstacle size
 int circleAdd = 160;                  // added to size of aura
 int circleTransparency = 20;
-float bossCFactor = 1.5;              // boss has smaller circle and no add
 
 void setup() {
   // setup screen
-  // size(1000, 1000);
+  // size(960, 540, P3D);
   fullScreen(P3D);
   orientation(PORTRAIT);
   //prepare scaling screen to fixed resolution
   pg = createGraphics(pgWidth, pgHeight, P3D);
-  noCursor();
+  // noCursor();
   frameRate(60);
   smooth(2);
   background(0);
@@ -102,11 +102,13 @@ void setup() {
   snap2 = minim.loadSample("snap2.wav", bufferSize);
   gameover = minim.loadSample("gameover.wav", bufferSize);
   // bg = minim.loadFile("feedbacker.wav", bufferSize);     // BORIS - feedbacker stretched reversed               //24m
-  bg = minim.loadFile("dolphin.wav", bufferSize);     // BORIS - feedbacker stretched reversed               //24m
+  // bg = minim.loadFile("dolphin.wav", bufferSize);        // BORIS - feedbacker stretched reversed               //24m
+  // bg = minim.loadFile("bochum2.wav", bufferSize);        // bochum 2                                            //7m
+  bg = minim.loadFile("bochum3.wav", bufferSize);        // bochum 3                                            //9m
   // bg = minim.loadFile("bg2full.wav", bufferSize);        // A.G. Cook - windowlicker stretched                  //18m
   // bg = minim.loadFile("bg3full.wav", bufferSize);        // Sufjan Stevens - Futile Devices stretched           //4.5m
   // bg = minim.loadFile("bg4full.wav", bufferSize);        // Conan Mockassin stretched                           //21m
-  // bg = minim.loadFile("bg5full.wav", bufferSize);           // BORIS - flood 1 stretched                           //31m
+  // bg = minim.loadFile("bg5full.wav", bufferSize);        // BORIS - flood 1 stretched                           //31m
   // bg = minim.loadFile("snap0.wav", bufferSize);          // end of song test
 
   logo =        loadShape("logolast.svg");
@@ -141,8 +143,9 @@ void initGame() {
   scEVel = 0.0025 * changeVel;
   limiter = 0.7;
   eActive = sActive;
-  shipChance = 0.25; //starting chance for spawn to be ship, increases with score as well
+  shipChance = 0.2; //starting chance for spawn to be ship, increases with score as well
   kamiChance = 0.1;
+  onoffChance = 0.0;
   bossNumber = 0;
   bossActive = false;
 
@@ -155,6 +158,7 @@ void initGame() {
 //// rewind the song and calculate a new starting value
 void rewindSong() {
   startScore = score * scoreRate/3 + highScore *scoreRate/4;
+  highScore *= (0.1 + scoreRate); //current max score rate is 0.9 so under ideal conditions highScore is preserved
   bg.rewind();
   setup();
 }
@@ -176,8 +180,19 @@ void draw() {
   }
 
   // scale everything from the canvas to the actual screen
+  pg.fill(0, 0, 0, 0);
+  pg.stroke(255);
+  pg.strokeWeight(1);
   pg.endDraw();
   image(pg, 0, 0, width, height);
+  /// Stuff for screen recording / centering dodger
+  // pg.rect(pgWidth/2, pgHeight/2, pgWidth-9, pgHeight-9);
+  // pg.e / ndDraw();
+  // pushMatrix();
+  // translate(pgWidth/4-dodger.pos.x, pgHeight/4-dodger.pos.y);
+  // println(dodger.pos.x, dodger.pos.y);
+  // image(pg, 0, 0, width*2, height*2);
+  // popMatrix();
 }
 
 //// draw the progress of the song
@@ -238,10 +253,12 @@ void runGame() {
       enemies[eNum].hp--; // decrease life of enemies aura
       if(enemies[eNum].circleTouched == false && enemies[eNum].hp < 0) {
         // increase score depending on obstacle type (asteroid:1 ship:1.5 kamikaze:2.5 boss:5 )
-        if(enemies[eNum].type == "boss1" || enemies[eNum].type == "boss2") {
+        if(enemies[eNum].type == "boss1" || enemies[eNum].type == "boss2" || enemies[eNum].type == "boss3" || enemies[eNum].type == "boss3b") {
           score += 3 + bossNumber*5;
           score += 3 + bossNumber*5;
           bossActive = false;
+        } else if(enemies[eNum].type == "onoff") {
+          score += 4.5;
         } else if(enemies[eNum].type == "kamikaze") {
           score += 2.5;
         } else if(enemies[eNum].type == "ship") {
@@ -290,26 +307,37 @@ void runGame() {
 void newEnemy() {
   String thisType = "asteroid";
   int border = (int) random(4);         // determine which edge enemies spawn from
-  float typeR = random(1);               // determine which type the obstacle is going to be
+  float typeR = random(1);              // determine which type the obstacle is going to be
 
   // check if bosses get spawned
   nextBossNumber = int(40 + bossNumber*5);
+  // refresh spawn chances
+  shipVal  = (             score *chanceModifier + shipChance);
+  kamiVal  = (max(0, (score-20)) *chanceModifier + kamiChance);
+  onoffVal = (max(0, (score-100))*chanceModifier + onoffChance);
+  println(score*chanceModifier);
   if(score > 5 && score % nextBossNumber <= 5 && !bossActive) {
     modifier = score;
     bossActive = true;
     float bossSeed = random(1,5);
     println("making boss", int(bossNumber+bossSeed));
-    switch(int(bossNumber+bossSeed) % 2) {
+    switch(int(bossNumber+bossSeed) % 4) {
       case 0:
         thisType = "boss1";
         break;
       case 1:
         thisType = "boss2";
         break;
+      case 2:
+        thisType = "boss3";
+        break;
+      case 3:
+        thisType = "boss3b";
+        break;
     }
     bossNumber += 1;
-    kamiVal = (-score*chanceModifier + kamiChance);
-    shipVal = (-score*chanceModifier + shipChance);
+    } else if( (typeR) > 1-onoffVal ) {
+      thisType = "onoff";
     } else if( (typeR) > 1-kamiVal ) {
     thisType = "kamikaze";
     } else if( (typeR) > 1-shipVal ) {
@@ -402,6 +430,8 @@ void showScore() {
   rotAcc = rotMod * (2 + score*scAcc) * changeVel; // increase the rotation velocity by rotation acceleration
   rotVel += rotAcc;                       // velocity increases by acceleration
   rotVel *= rotDamp;                      // dampen the rotation velocity
+
+  drawBar();
   // wait for key input to show mainMenu
 }
 
@@ -443,29 +473,33 @@ void showMenu() {
   } else {
     pg.fill(255, 255, 255, max(0, 150-highScore));
     pg.text("spacebar", pgWidth*2/4, pgHeight*3.45/4 -50);
-    pg.text("new game", pgWidth*2/4, pgHeight*3.7/4 -50);
+    pg.text("enter void", pgWidth*2/4, pgHeight*3.7/4 -50);
   }
   // draw logo
   int border = 350;
   // sponge the logos need to be scaled to really apply the offset
   // would be much better anyways because that way they keep their proportions
-  float logoOffX = -10; //(logoOutline.width - logo.width)/2;
-  float logoOffY = -8;//(logoOutline.height - logo.height)/2;
+  float logoOffX = -11; //(logoOutline.width - logo.width)/2;
+  float logoOffY = -10;//(logoOutline.height - logo.height)/2;
+  int logoXstart = 100;
+  int logoXend = pgWidth - 170;
+  int logoYstart = 255;
+  int logoYend = 520;
   logoOutline.setFill(color(min(255, highScore*3/5), min(255, highScore*3/5), min(255, highScore*3/5)) );
   pushMatrix();
-    translate(0, 0, 1);
-    shape(logoOutline, -160+ border -10,
-                -80 + 355 -15,
-                -160+ pgWidth-border +20,
-                -80 + 720 +30);
+    pg.translate(0, 0, 1);
+    pg.shape(logoOutline, logoXstart,
+                          logoYstart,
+                          logoXend,
+                          logoYend);
     logo.setFill(color(0, 0, 0));
     int logoFlex = 30;
-    shape(logo, -160+ logoOffX + border - (dodger.pos.x-pgWidth/2)/logoFlex,
-                -80 + logoOffY + 355 - (dodger.pos.y-pgHeight/2)/logoFlex,
-                -160+ logoOffX + pgWidth-border - (dodger.pos.x-pgWidth/2)/logoFlex,
-                -80 + logoOffY + 720 - (dodger.pos.y-pgHeight/2)/logoFlex);
+    pg.shape(logo, logoXstart +15 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
+                   logoYstart +10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex,
+                   logoXend   - 5 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
+                   logoYend   -10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex);
     //sponge this doesnt work somehow... dodger should be drawn in the foreground
-    translate(0, 0, 2);
+    pg.translate(0, 0, 2);
     dodger.draw();
   popMatrix();
 
@@ -519,8 +553,9 @@ void drawBar() {
       " || size start:" + startSize +
       "  +s* " + scESize +
       "  current:" + nf(startSize + score*scESize, 0, 3) +
-      " || chance for ship:" + shipVal +
-      " kami:" + kamiVal, 10, 10);
+      " || chance for ship:" + nf(shipVal, 0, 3) +
+      " kami:" + nf(kamiVal, 0, 3) +
+      " onoff:" + nf(onoffVal, 0, 3) , 10, 10);
       break;
     // show dodger stats
     case 3:
