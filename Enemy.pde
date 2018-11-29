@@ -16,6 +16,8 @@ class Enemy {
   boolean circleActive = true;
   float bossCFactor = 1.5;              // boss has smaller circle and no add
   int spawnTimer = millis();
+  int popTimer = 0;                   // timer that gets set when the aura gets harvested
+  int popDuration = 450;             // duration of the aura harvest effect (aura lights up and then disappears)
   int untouchable = 6000; // time the bosses are untouchable
   float transparency;
   float rotation = random(-1, 1);
@@ -32,7 +34,7 @@ class Enemy {
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(size/4, size*5/4);
       }
-      hp = int((50 + score/50) / changeVel);
+      hp = int((35 + score/50) / changeVel);
     }
     if(type == "ship"){
       size = startSize + score*scESize;
@@ -41,7 +43,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = int((30 + score/40) /changeVel);
+      hp = int((25 + score/40) /changeVel);
     }
     if(type == "kamikaze"){
       size = startSize + score*scESize;
@@ -50,7 +52,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = int((25 + score/15) /changeVel);
+      hp = int((20 + score/15) /changeVel);
     }
     if(type == "onoff"){
       size = startSize + score*scESize;
@@ -59,7 +61,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = int((50 + score/15) /changeVel);
+      hp = int((45 + score/15) /changeVel);
     }
     if(type == "boss1"){
       size = 100 + (startSize + score*scESize)*0.4 + modifier/4;
@@ -67,7 +69,7 @@ class Enemy {
       vel = _vel * random(0.6, 0.95) + score * scEVel;
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(4, size);
-        hp = int(400+modifier / changeVel);
+        hp = int(250 + modifier / changeVel);
         //+ int(score/8);
       }
     }
@@ -77,21 +79,21 @@ class Enemy {
       vel = _vel * random(0.9, 1.1) + score * scEVel;
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(4, size);
-        hp = int(400+modifier / changeVel);
+        hp = int(300 + modifier / changeVel);
         //+ int(score/8);
       }
     }
     if(type == "boss3"){
       size = dodger.size*2;
       vel = (dodger.vel + score*scVel) * 1;
-      hp = int(300+modifier / changeVel);
+      hp = int(220 + modifier / changeVel);
       a = dodger.a + PI;
       bossCFactor = bossCFactor * 1.5;
     }
     if(type == "boss3b"){
       size = dodger.size*2;
       vel = (dodger.vel + score*scVel) * 1.5;
-      hp = int(200 + modifier / changeVel);
+      hp = int(160 + modifier / changeVel);
       a = dodger.a + HALF_PI;
       bossCFactor = bossCFactor * 1.5;
     }
@@ -112,6 +114,24 @@ class Enemy {
       } else {
         pg.fill(255, 255, 255, circleTransparency + map(hp, 15, maxHp, 0, 60) );
         pg.ellipse(0, 0, 2*size*circleFactor + circleAdd, 2*size*circleFactor + circleAdd);
+      }
+    }
+    if(popTimer != 0 && popTimer > millis() - popDuration ) {
+      // make the aura light up for popDuration/2 and then fade out again
+      float popTransparency = map(abs(millis()-popTimer-popDuration/2), 0, popDuration/2, 40, 0);
+
+      pg.noStroke();
+      if(type == "boss1" || type == "boss2" || type == "boss3" || type == "boss3") {
+        pg.fill(255, 255, 255, circleTransparency + popTransparency );
+        pg.ellipse(0, 0, 2*size*bossCFactor, 2*size*bossCFactor);
+        pg.fill(0);
+        pg.ellipse(0, 0, size, size);
+      } else {
+        pg.fill(255, 255, 255, popTransparency );
+        float circleSize = map(millis() - popTimer, 0, popDuration, 1, 0);
+        println(circleSize);
+        circleSize *= 2*size*circleFactor + circleAdd;
+        pg.ellipse(0, 0, circleSize, circleSize);
       }
     }
     if(!circleActive) {
@@ -143,12 +163,19 @@ class Enemy {
     pg.strokeWeight(3);
     if(type == "ship") {
       pg.beginShape();
-        pg.vertex(-1 * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5 * size ,   -1 * size);
-        pg.vertex(0          , -0.3 * size);
-        pg.vertex(-1 * size,   -1 * size);
-      pg.endShape();
+              pg.vertex(-0.4 * size, -1 * size);
+              pg.vertex(0.4 * size, -1 *size);
+              pg.vertex(0.9 * size, -0.66 * size);
+              pg.vertex(0.9 * size, -0.33 * size);
+              pg.vertex(0.4 * size, 0);
+              pg.vertex(0.4 * size, 0.66 * size);
+              pg.vertex(0, 1 * size);
+              pg.vertex(-0.4 * size, 0.66 * size);
+              pg.vertex(-0.4 * size, 0);
+              pg.vertex(-0.9 * size, -0.33 * size);
+              pg.vertex(-0.9 * size, -0.66 * size);
+              pg.vertex(-0.4 * size, -1 * size);
+            pg.endShape();
     } else if(type == "asteroid") {
       pg.rotate(frameCount*0.03*rotation);
       pg.beginShape();
@@ -159,6 +186,37 @@ class Enemy {
         pg.vertex(-12, -12);
         pg.vertex(0, -rndmAst[1]);
       pg.endShape();
+    } else if(type == "kamikaze") {
+      scale(0.6);
+      pg.beginShape();
+        pg.vertex(-0.32 * size, -1 * size);
+        pg.vertex(0.32 * size, -1 * size);
+        pg.vertex(0.32 * size, -0.5 * size);
+        pg.vertex(0.64 * size, -0.5 * size);
+        pg.vertex(0.64 * size, -1 * size);
+        pg.vertex(0.9 * size, -1 * size);
+        pg.vertex(0.9 * size, 1 * size);
+        pg.vertex(0.64 * size, 1 * size);
+        pg.vertex(0.64 * size, 0.3 * size);
+        pg.vertex(0.32 * size, 0.3 * size);
+        pg.vertex(0.32 * size, 0.5 * size);
+        pg.vertex(0.16 * size, 0.66 * size);
+        pg.vertex(0.16 * size, 0.83 * size);
+        pg.vertex(0, 1 * size);
+        pg.vertex(-0.16 * size, 0.83 * size);
+        pg.vertex(-0.16 * size, 0.66 * size);
+        pg.vertex(-0.32 * size, 0.5 * size);
+        pg.vertex(-0.32 * size, 0.3 * size);
+        pg.vertex(-0.64 * size, 0.3 * size);
+        pg.vertex(-0.64 * size, 1 * size);
+        pg.vertex(-0.9 * size, 1 * size);
+        pg.vertex(-0.9 * size, -1 * size);
+        pg.vertex(-0.64 * size, -1 * size);
+        pg.vertex(-0.64 * size, -0.5 * size);
+        pg.vertex(-0.32 * size, -0.5 * size);
+        pg.vertex(-0.32 * size, -1 * size);
+      pg.endShape();
+      scale(1/0.6);
     } else if(type == "onoff") {
       pg.ellipse(0, 0, size, size);
       pg.stroke(0);
@@ -207,14 +265,6 @@ class Enemy {
       pg.line(-0.5 * size, -1 * size, 0, 1 * size);
       pg.line(0.5 * size, -1 * size, 0, 1 * size);
       pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
-    } else if(type == "kamikaze") {
-      pg.beginShape();
-        pg.vertex(-0.5 * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5 * size ,   -1 * size);
-        pg.vertex(0          , -0.3 * size);
-        pg.vertex(-0.5 * size,   -1 * size);
-      pg.endShape();
   }
     pg.popMatrix();
   }

@@ -74,8 +74,8 @@ int nextBossNumber;
 float modifier;                       // used to modify some starting values
 
 /// Aura
-float circleFactor = 1.4;             // size of aura per obstacle size
-int circleAdd = 160;                  // added to size of aura
+float circleFactor = 1.3;             // size of aura per obstacle size
+int circleAdd = 230;                  // added to size of aura
 int circleTransparency = 20;
 
 void setup() {
@@ -131,7 +131,7 @@ void initGame() {
 
   // dodger attributes
   rotVel = 0;   // current rotation velocity
-  startVel = 2 * changeVel;
+  startVel = 3 * changeVel;
   scVel = 0.002 * changeVel;
   // sponge something is horribly broken here, dodger always turns the same speed
   rotAcc = random(0.002, 0.004); // current rotation acceleration
@@ -139,7 +139,7 @@ void initGame() {
   dodger = new Dodger(currentPos.x, currentPos.y, currentAng);
 
   //obstacle attributes
-  startEVel = 1.6 * changeVel;
+  startEVel = 2.6 * changeVel;
   scEVel = 0.0025 * changeVel;
   limiter = 0.7;
   eActive = sActive;
@@ -279,7 +279,8 @@ void runGame() {
             break;
         }
         enemies[eNum].circleTouched = true;
-        enemies[eNum].vel *= random(obstacleDrain/3, obstacleDrain);                                           // reduce obstacle velocity when circle disappears
+        enemies[eNum].popTimer = millis();
+        enemies[eNum].vel *= random(obstacleDrain/2, obstacleDrain);                                           // reduce obstacle velocity when circle disappears
         enemies[eNum].rotation = (enemies[eNum].rotation % TWO_PI) *random(0.5*obstacleRDrain, 1.5*obstacleRDrain);  // reduce obstacle rotation when circle disappears
       }
     }
@@ -315,7 +316,6 @@ void newEnemy() {
   shipVal  = (             score *chanceModifier + shipChance);
   kamiVal  = (max(0, (score-20)) *chanceModifier + kamiChance);
   onoffVal = (max(0, (score-100))*chanceModifier + onoffChance);
-  println(score*chanceModifier);
   if(score > 5 && score % nextBossNumber <= 5 && !bossActive) {
     modifier = score;
     bossActive = true;
@@ -386,7 +386,7 @@ void showScore() {
   //draw dodger with current aura size
   if(!menuDodgerInit) {
     // make a dodger for the main menu
-    changeVel = 1.3;                  // modifies all velocities
+    changeVel = 1.6;                  // modifies all velocities
     rotVel = 0;   // current rotation velocity
     startVel = 2 * changeVel *1.2;
     scVel = 0.002 * changeVel *1.5;

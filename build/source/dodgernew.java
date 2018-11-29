@@ -92,8 +92,8 @@ int nextBossNumber;
 float modifier;                       // used to modify some starting values
 
 /// Aura
-float circleFactor = 1.4f;             // size of aura per obstacle size
-int circleAdd = 160;                  // added to size of aura
+float circleFactor = 1.3f;             // size of aura per obstacle size
+int circleAdd = 230;                  // added to size of aura
 int circleTransparency = 20;
 
 public void setup() {
@@ -149,7 +149,7 @@ public void initGame() {
 
   // dodger attributes
   rotVel = 0;   // current rotation velocity
-  startVel = 2 * changeVel;
+  startVel = 3 * changeVel;
   scVel = 0.002f * changeVel;
   // sponge something is horribly broken here, dodger always turns the same speed
   rotAcc = random(0.002f, 0.004f); // current rotation acceleration
@@ -157,7 +157,7 @@ public void initGame() {
   dodger = new Dodger(currentPos.x, currentPos.y, currentAng);
 
   //obstacle attributes
-  startEVel = 1.6f * changeVel;
+  startEVel = 2.6f * changeVel;
   scEVel = 0.0025f * changeVel;
   limiter = 0.7f;
   eActive = sActive;
@@ -297,7 +297,8 @@ public void runGame() {
             break;
         }
         enemies[eNum].circleTouched = true;
-        enemies[eNum].vel *= random(obstacleDrain/3, obstacleDrain);                                           // reduce obstacle velocity when circle disappears
+        enemies[eNum].popTimer = millis();
+        enemies[eNum].vel *= random(obstacleDrain/2, obstacleDrain);                                           // reduce obstacle velocity when circle disappears
         enemies[eNum].rotation = (enemies[eNum].rotation % TWO_PI) *random(0.5f*obstacleRDrain, 1.5f*obstacleRDrain);  // reduce obstacle rotation when circle disappears
       }
     }
@@ -333,7 +334,6 @@ public void newEnemy() {
   shipVal  = (             score *chanceModifier + shipChance);
   kamiVal  = (max(0, (score-20)) *chanceModifier + kamiChance);
   onoffVal = (max(0, (score-100))*chanceModifier + onoffChance);
-  println(score*chanceModifier);
   if(score > 5 && score % nextBossNumber <= 5 && !bossActive) {
     modifier = score;
     bossActive = true;
@@ -404,7 +404,7 @@ public void showScore() {
   //draw dodger with current aura size
   if(!menuDodgerInit) {
     // make a dodger for the main menu
-    changeVel = 1.3f;                  // modifies all velocities
+    changeVel = 1.6f;                  // modifies all velocities
     rotVel = 0;   // current rotation velocity
     startVel = 2 * changeVel *1.2f;
     scVel = 0.002f * changeVel *1.5f;
@@ -826,6 +826,8 @@ class Enemy {
   boolean circleActive = true;
   float bossCFactor = 1.5f;              // boss has smaller circle and no add
   int spawnTimer = millis();
+  int popTimer = 0;                   // timer that gets set when the aura gets harvested
+  int popDuration = 450;             // duration of the aura harvest effect (aura lights up and then disappears)
   int untouchable = 6000; // time the bosses are untouchable
   float transparency;
   float rotation = random(-1, 1);
@@ -842,7 +844,7 @@ class Enemy {
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(size/4, size*5/4);
       }
-      hp = PApplet.parseInt((50 + score/50) / changeVel);
+      hp = PApplet.parseInt((35 + score/50) / changeVel);
     }
     if(type == "ship"){
       size = startSize + score*scESize;
@@ -851,7 +853,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = PApplet.parseInt((30 + score/40) /changeVel);
+      hp = PApplet.parseInt((25 + score/40) /changeVel);
     }
     if(type == "kamikaze"){
       size = startSize + score*scESize;
@@ -860,7 +862,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = PApplet.parseInt((25 + score/15) /changeVel);
+      hp = PApplet.parseInt((20 + score/15) /changeVel);
     }
     if(type == "onoff"){
       size = startSize + score*scESize;
@@ -869,7 +871,7 @@ class Enemy {
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
-      hp = PApplet.parseInt((50 + score/15) /changeVel);
+      hp = PApplet.parseInt((45 + score/15) /changeVel);
     }
     if(type == "boss1"){
       size = 100 + (startSize + score*scESize)*0.4f + modifier/4;
@@ -877,7 +879,7 @@ class Enemy {
       vel = _vel * random(0.6f, 0.95f) + score * scEVel;
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(4, size);
-        hp = PApplet.parseInt(400+modifier / changeVel);
+        hp = PApplet.parseInt(250 + modifier / changeVel);
         //+ int(score/8);
       }
     }
@@ -887,21 +889,21 @@ class Enemy {
       vel = _vel * random(0.9f, 1.1f) + score * scEVel;
       for (int i=0; i < rndmAst.length; i++){
         rndmAst[i] = random(4, size);
-        hp = PApplet.parseInt(400+modifier / changeVel);
+        hp = PApplet.parseInt(300 + modifier / changeVel);
         //+ int(score/8);
       }
     }
     if(type == "boss3"){
       size = dodger.size*2;
       vel = (dodger.vel + score*scVel) * 1;
-      hp = PApplet.parseInt(300+modifier / changeVel);
+      hp = PApplet.parseInt(220 + modifier / changeVel);
       a = dodger.a + PI;
       bossCFactor = bossCFactor * 1.5f;
     }
     if(type == "boss3b"){
       size = dodger.size*2;
       vel = (dodger.vel + score*scVel) * 1.5f;
-      hp = PApplet.parseInt(200 + modifier / changeVel);
+      hp = PApplet.parseInt(160 + modifier / changeVel);
       a = dodger.a + HALF_PI;
       bossCFactor = bossCFactor * 1.5f;
     }
@@ -922,6 +924,24 @@ class Enemy {
       } else {
         pg.fill(255, 255, 255, circleTransparency + map(hp, 15, maxHp, 0, 60) );
         pg.ellipse(0, 0, 2*size*circleFactor + circleAdd, 2*size*circleFactor + circleAdd);
+      }
+    }
+    if(popTimer != 0 && popTimer > millis() - popDuration ) {
+      // make the aura light up for popDuration/2 and then fade out again
+      float popTransparency = map(abs(millis()-popTimer-popDuration/2), 0, popDuration/2, 40, 0);
+
+      pg.noStroke();
+      if(type == "boss1" || type == "boss2" || type == "boss3" || type == "boss3") {
+        pg.fill(255, 255, 255, circleTransparency + popTransparency );
+        pg.ellipse(0, 0, 2*size*bossCFactor, 2*size*bossCFactor);
+        pg.fill(0);
+        pg.ellipse(0, 0, size, size);
+      } else {
+        pg.fill(255, 255, 255, popTransparency );
+        float circleSize = map(millis() - popTimer, 0, popDuration, 1, 0);
+        println(circleSize);
+        circleSize *= 2*size*circleFactor + circleAdd;
+        pg.ellipse(0, 0, circleSize, circleSize);
       }
     }
     if(!circleActive) {
@@ -953,12 +973,19 @@ class Enemy {
     pg.strokeWeight(3);
     if(type == "ship") {
       pg.beginShape();
-        pg.vertex(-1 * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5f * size ,   -1 * size);
-        pg.vertex(0          , -0.3f * size);
-        pg.vertex(-1 * size,   -1 * size);
-      pg.endShape();
+              pg.vertex(-0.4f * size, -1 * size);
+              pg.vertex(0.4f * size, -1 *size);
+              pg.vertex(0.9f * size, -0.66f * size);
+              pg.vertex(0.9f * size, -0.33f * size);
+              pg.vertex(0.4f * size, 0);
+              pg.vertex(0.4f * size, 0.66f * size);
+              pg.vertex(0, 1 * size);
+              pg.vertex(-0.4f * size, 0.66f * size);
+              pg.vertex(-0.4f * size, 0);
+              pg.vertex(-0.9f * size, -0.33f * size);
+              pg.vertex(-0.9f * size, -0.66f * size);
+              pg.vertex(-0.4f * size, -1 * size);
+            pg.endShape();
     } else if(type == "asteroid") {
       pg.rotate(frameCount*0.03f*rotation);
       pg.beginShape();
@@ -969,6 +996,37 @@ class Enemy {
         pg.vertex(-12, -12);
         pg.vertex(0, -rndmAst[1]);
       pg.endShape();
+    } else if(type == "kamikaze") {
+      scale(0.6f);
+      pg.beginShape();
+        pg.vertex(-0.32f * size, -1 * size);
+        pg.vertex(0.32f * size, -1 * size);
+        pg.vertex(0.32f * size, -0.5f * size);
+        pg.vertex(0.64f * size, -0.5f * size);
+        pg.vertex(0.64f * size, -1 * size);
+        pg.vertex(0.9f * size, -1 * size);
+        pg.vertex(0.9f * size, 1 * size);
+        pg.vertex(0.64f * size, 1 * size);
+        pg.vertex(0.64f * size, 0.3f * size);
+        pg.vertex(0.32f * size, 0.3f * size);
+        pg.vertex(0.32f * size, 0.5f * size);
+        pg.vertex(0.16f * size, 0.66f * size);
+        pg.vertex(0.16f * size, 0.83f * size);
+        pg.vertex(0, 1 * size);
+        pg.vertex(-0.16f * size, 0.83f * size);
+        pg.vertex(-0.16f * size, 0.66f * size);
+        pg.vertex(-0.32f * size, 0.5f * size);
+        pg.vertex(-0.32f * size, 0.3f * size);
+        pg.vertex(-0.64f * size, 0.3f * size);
+        pg.vertex(-0.64f * size, 1 * size);
+        pg.vertex(-0.9f * size, 1 * size);
+        pg.vertex(-0.9f * size, -1 * size);
+        pg.vertex(-0.64f * size, -1 * size);
+        pg.vertex(-0.64f * size, -0.5f * size);
+        pg.vertex(-0.32f * size, -0.5f * size);
+        pg.vertex(-0.32f * size, -1 * size);
+      pg.endShape();
+      scale(1/0.6f);
     } else if(type == "onoff") {
       pg.ellipse(0, 0, size, size);
       pg.stroke(0);
@@ -1017,14 +1075,6 @@ class Enemy {
       pg.line(-0.5f * size, -1 * size, 0, 1 * size);
       pg.line(0.5f * size, -1 * size, 0, 1 * size);
       pg.line(-0.4f * size, -0.6f * size, 0.4f * size, -0.6f * size); //back line
-    } else if(type == "kamikaze") {
-      pg.beginShape();
-        pg.vertex(-0.5f * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5f * size ,   -1 * size);
-        pg.vertex(0          , -0.3f * size);
-        pg.vertex(-0.5f * size,   -1 * size);
-      pg.endShape();
   }
     pg.popMatrix();
   }
