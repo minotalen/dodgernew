@@ -85,7 +85,7 @@ float obstacleRDrain = 0.4f;           // rotation of obstacle after aura was ha
 float shipChance, shipVal;            // chance to spawn ship instead of asteroid
 float kamiChance, kamiVal;            // chance to spawn kamikaze, starts at 0 increases with score
 float onoffChance, onoffVal;          // chance to spawn onoff, starts at 0 increases with score
-float chanceModifier = 0.001f;         // number by which the chance for obstacle types gets modified
+float chanceModifier = 0.0015f;         // number by which the chance for obstacle types gets modified
 boolean bossActive = false;           // tells us if there is a boss on the field
 int bossNumber;                       // cycles through the bosses
 int nextBossNumber;
@@ -361,7 +361,7 @@ public void newEnemy() {
     } else if( (typeR) > 1-shipVal ) {
     thisType = "ship";
   } else {
-    thisType = "asteroid";
+    thisType = "boss1";
   }
   float obstacleDiameter = (startSize + score*scESize) * circleFactor + circleAdd;
   if(thisType == "boss1"){
@@ -997,36 +997,13 @@ class Enemy {
         pg.vertex(0, -rndmAst[1]);
       pg.endShape();
     } else if(type == "kamikaze") {
-      scale(0.6f);
       pg.beginShape();
-        pg.vertex(-0.32f * size, -1 * size);
-        pg.vertex(0.32f * size, -1 * size);
-        pg.vertex(0.32f * size, -0.5f * size);
-        pg.vertex(0.64f * size, -0.5f * size);
-        pg.vertex(0.64f * size, -1 * size);
-        pg.vertex(0.9f * size, -1 * size);
-        pg.vertex(0.9f * size, 1 * size);
-        pg.vertex(0.64f * size, 1 * size);
-        pg.vertex(0.64f * size, 0.3f * size);
-        pg.vertex(0.32f * size, 0.3f * size);
-        pg.vertex(0.32f * size, 0.5f * size);
-        pg.vertex(0.16f * size, 0.66f * size);
-        pg.vertex(0.16f * size, 0.83f * size);
-        pg.vertex(0, 1 * size);
-        pg.vertex(-0.16f * size, 0.83f * size);
-        pg.vertex(-0.16f * size, 0.66f * size);
-        pg.vertex(-0.32f * size, 0.5f * size);
-        pg.vertex(-0.32f * size, 0.3f * size);
-        pg.vertex(-0.64f * size, 0.3f * size);
-        pg.vertex(-0.64f * size, 1 * size);
-        pg.vertex(-0.9f * size, 1 * size);
-        pg.vertex(-0.9f * size, -1 * size);
-        pg.vertex(-0.64f * size, -1 * size);
-        pg.vertex(-0.64f * size, -0.5f * size);
-        pg.vertex(-0.32f * size, -0.5f * size);
-        pg.vertex(-0.32f * size, -1 * size);
+      pg.vertex(-0.5f * size,   -1 * size);
+      pg.vertex(0          ,    1 * size);
+      pg.vertex(0.5f * size ,   -1 * size);
+      pg.vertex(0          , -0.3f * size);
+      pg.vertex(-0.5f * size,   -1 * size);
       pg.endShape();
-      scale(1/0.6f);
     } else if(type == "onoff") {
       pg.ellipse(0, 0, size, size);
       pg.stroke(0);
@@ -1041,11 +1018,39 @@ class Enemy {
         pg.stroke(255);
         pg.fill(255);
       }
+      pg.beginShape();
+        pg.vertex(-0.32f * size, -0.6f * size);
+        pg.vertex(0.32f * size, -0.6f * size);
+        pg.vertex(0.32f * size, -0.5f * size);
+        pg.vertex(0.54f * size, -0.5f * size);
+        pg.vertex(0.54f * size, -0.6f * size);
+        pg.vertex(0.59f * size, -0.6f * size);
+        pg.vertex(0.59f * size, 0.6f * size);
+        pg.vertex(0.54f * size, 0.6f * size);
+        pg.vertex(0.54f * size, 0.3f * size);
+        pg.vertex(0.32f * size, 0.3f * size);
+        pg.vertex(0.32f * size, 0.5f * size);
+        pg.vertex(0.16f * size, 0.56f * size);
+        pg.vertex(0.16f * size, 0.83f * size);
+        pg.vertex(0, 0.6f * size);
+        pg.vertex(-0.16f * size, 0.83f * size);
+        pg.vertex(-0.16f * size, 0.56f * size);
+        pg.vertex(-0.32f * size, 0.5f * size);
+        pg.vertex(-0.32f * size, 0.3f * size);
+        pg.vertex(-0.54f * size, 0.3f * size);
+        pg.vertex(-0.54f * size, 0.6f * size);
+        pg.vertex(-0.59f * size, 0.6f * size);
+        pg.vertex(-0.59f * size, -0.6f * size);
+        pg.vertex(-0.54f * size, -0.6f * size);
+        pg.vertex(-0.54f * size, -0.5f * size);
+        pg.vertex(-0.32f * size, -0.5f * size);
+        pg.vertex(-0.32f * size, -0.59f * size);
+      pg.endShape();
       // draws the spawnTimer ellipse
-      pg.ellipse(0, 0, size, size);
-      pg.stroke(0);
-      pg.fill(0);
-      pg.ellipse(0, size, size/3, size/3);
+      // pg.ellipse(0, 0, size, size);
+      // pg.stroke(0);
+      // pg.fill(0);
+      // pg.ellipse(0, size, size/3, size/3);
     } else if(type == "boss2") {
       transparency = map(millis() - spawnTimer, 0, untouchable, 55, 255);
       if(!circleTouched) {

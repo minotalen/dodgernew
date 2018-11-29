@@ -187,36 +187,13 @@ class Enemy {
         pg.vertex(0, -rndmAst[1]);
       pg.endShape();
     } else if(type == "kamikaze") {
-      scale(0.6);
       pg.beginShape();
-        pg.vertex(-0.32 * size, -1 * size);
-        pg.vertex(0.32 * size, -1 * size);
-        pg.vertex(0.32 * size, -0.5 * size);
-        pg.vertex(0.64 * size, -0.5 * size);
-        pg.vertex(0.64 * size, -1 * size);
-        pg.vertex(0.9 * size, -1 * size);
-        pg.vertex(0.9 * size, 1 * size);
-        pg.vertex(0.64 * size, 1 * size);
-        pg.vertex(0.64 * size, 0.3 * size);
-        pg.vertex(0.32 * size, 0.3 * size);
-        pg.vertex(0.32 * size, 0.5 * size);
-        pg.vertex(0.16 * size, 0.66 * size);
-        pg.vertex(0.16 * size, 0.83 * size);
-        pg.vertex(0, 1 * size);
-        pg.vertex(-0.16 * size, 0.83 * size);
-        pg.vertex(-0.16 * size, 0.66 * size);
-        pg.vertex(-0.32 * size, 0.5 * size);
-        pg.vertex(-0.32 * size, 0.3 * size);
-        pg.vertex(-0.64 * size, 0.3 * size);
-        pg.vertex(-0.64 * size, 1 * size);
-        pg.vertex(-0.9 * size, 1 * size);
-        pg.vertex(-0.9 * size, -1 * size);
-        pg.vertex(-0.64 * size, -1 * size);
-        pg.vertex(-0.64 * size, -0.5 * size);
-        pg.vertex(-0.32 * size, -0.5 * size);
-        pg.vertex(-0.32 * size, -1 * size);
+      pg.vertex(-0.5 * size,   -1 * size);
+      pg.vertex(0          ,    1 * size);
+      pg.vertex(0.5 * size ,   -1 * size);
+      pg.vertex(0          , -0.3 * size);
+      pg.vertex(-0.5 * size,   -1 * size);
       pg.endShape();
-      scale(1/0.6);
     } else if(type == "onoff") {
       pg.ellipse(0, 0, size, size);
       pg.stroke(0);
@@ -231,11 +208,39 @@ class Enemy {
         pg.stroke(255);
         pg.fill(255);
       }
+      pg.beginShape();
+        pg.vertex(-0.32 * size, -0.6 * size);
+        pg.vertex(0.32 * size, -0.6 * size);
+        pg.vertex(0.32 * size, -0.5 * size);
+        pg.vertex(0.54 * size, -0.5 * size);
+        pg.vertex(0.54 * size, -0.6 * size);
+        pg.vertex(0.59 * size, -0.6 * size);
+        pg.vertex(0.59 * size, 0.6 * size);
+        pg.vertex(0.54 * size, 0.6 * size);
+        pg.vertex(0.54 * size, 0.3 * size);
+        pg.vertex(0.32 * size, 0.3 * size);
+        pg.vertex(0.32 * size, 0.5 * size);
+        pg.vertex(0.16 * size, 0.56 * size);
+        pg.vertex(0.16 * size, 0.83 * size);
+        pg.vertex(0, 0.6 * size);
+        pg.vertex(-0.16 * size, 0.83 * size);
+        pg.vertex(-0.16 * size, 0.56 * size);
+        pg.vertex(-0.32 * size, 0.5 * size);
+        pg.vertex(-0.32 * size, 0.3 * size);
+        pg.vertex(-0.54 * size, 0.3 * size);
+        pg.vertex(-0.54 * size, 0.6 * size);
+        pg.vertex(-0.59 * size, 0.6 * size);
+        pg.vertex(-0.59 * size, -0.6 * size);
+        pg.vertex(-0.54 * size, -0.6 * size);
+        pg.vertex(-0.54 * size, -0.5 * size);
+        pg.vertex(-0.32 * size, -0.5 * size);
+        pg.vertex(-0.32 * size, -0.59 * size);
+      pg.endShape();
       // draws the spawnTimer ellipse
-      pg.ellipse(0, 0, size, size);
-      pg.stroke(0);
-      pg.fill(0);
-      pg.ellipse(0, size, size/3, size/3);
+      // pg.ellipse(0, 0, size, size);
+      // pg.stroke(0);
+      // pg.fill(0);
+      // pg.ellipse(0, size, size/3, size/3);
     } else if(type == "boss2") {
       transparency = map(millis() - spawnTimer, 0, untouchable, 55, 255);
       if(!circleTouched) {

@@ -31,6 +31,8 @@ int diagBar = 6;  // sets the state of  the diagnostics bar, can be changed by n
 float scoreRate;
 
 float changeVel = 0.8;               // modifies all velocities
+float frameDrop = 25;                // amount of fps the game drops on gameOver
+int frameDropDuration = 2000;
 
 float nextScore;
 
@@ -67,7 +69,7 @@ float obstacleRDrain = 0.4;           // rotation of obstacle after aura was har
 float shipChance, shipVal;            // chance to spawn ship instead of asteroid
 float kamiChance, kamiVal;            // chance to spawn kamikaze, starts at 0 increases with score
 float onoffChance, onoffVal;          // chance to spawn onoff, starts at 0 increases with score
-float chanceModifier = 0.001;         // number by which the chance for obstacle types gets modified
+float chanceModifier = 0.0015;         // number by which the chance for obstacle types gets modified
 boolean bossActive = false;           // tells us if there is a boss on the field
 int bossNumber;                       // cycles through the bosses
 int nextBossNumber;
@@ -125,6 +127,7 @@ void setup() {
 
 //// set up the variables for game initialisation
 void initGame() {
+  frameRate(60);
   menuDodgerInit = false;
   gameOver = false;
   playTime = second();
