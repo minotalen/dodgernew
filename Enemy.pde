@@ -342,7 +342,6 @@ class Enemy {
     if(type == "sinusoid" && !auraTouched){
       // slowly turn towards the player
       a += sin((frameCount + spawnTimer)/TWO_PI/5)/50;
-      println(a);
     }
     if(type == "boss2" && !auraTouched){
       // slowly turn towards the player

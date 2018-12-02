@@ -83,7 +83,7 @@ class Dodger {
 
   //// check if dodger is inside the boundaries
   void bounds() {
-    if(mainMenu && (pos.x < 0+200 || pos.x > pgWidth-200 || pos.y < 0+200 || pos.y > pgHeight-200)) {
+    if(millis() > mainMenuTime+500 && mainMenu && (pos.x < 0+200 || pos.x > pgWidth-200 || pos.y < 0+200 || pos.y > pgHeight-200)) {
       menuRun();
     }
     if(pos.x < 0+size*2/3) {

@@ -3,8 +3,6 @@ import processing.data.*;
 import processing.event.*; 
 import processing.opengl.*; 
 
-import ddf.minim.*; 
-
 import java.util.HashMap; 
 import java.util.ArrayList; 
 import java.io.File; 
@@ -16,14 +14,6 @@ import java.io.IOException;
 
 public class dodgernew extends PApplet {
 
-
-Minim minim;
-
-// Load the sound files
-AudioSample pop, sLeft, sRight, snap0, snap1, snap2, gameover;
-AudioPlayer bg;
-boolean gameOverSoundPlayed;
-boolean soundEffects = true;
 boolean cheatsEnabled = true;
 
 //prepare scaling screen to fixed resolution
@@ -49,6 +39,7 @@ int scoreDropFrame; // gets set to frameCount when showState is set true
 int scoreDropDuration = 240; // (in frames)
 
 boolean mainMenu; // starts a new game
+int mainMenuTime; // time the player went gameOver
 boolean menuDodgerInit;
 float pausePenalty = 0.95f; // penalty for going into pause (P key btw)
 
@@ -56,7 +47,7 @@ float pausePenalty = 0.95f; // penalty for going into pause (P key btw)
 final int music = 0;    // const
 final int endless = 1;  // const
 
-int gameMode = music;
+int gameMode = endless;
 
 int diagBar = 6;  // sets the state of  the diagnostics bar, can be changed by num keys
 float scoreRate;
@@ -113,41 +104,14 @@ public void setup() {
   // setup screen
   // size(960, 540, P3D);
   
-  orientation(PORTRAIT);
+  orientation(LANDSCAPE);
   //prepare scaling screen to fixed resolution
   pg = createGraphics(pgWidth, pgHeight, P3D);
   // noCursor();
   frameRate(60);
+
   background(0);
   mainMenu = true;
-
-  //sounds
-  minim = new Minim(this);
-  int bufferSize = 512;
-  // load song
-  if(gameMode == music) {
-    // bg = minim.loadFile("song.wav", bufferSize);           // this is a placeholder to conserve filesize. replace with your own .wav music
-    // bg = minim.loadFile("betonkusten.wav", bufferSize);    // Betonkusten Mix - Eindleader Videonet & Nintendo Pantera //7m
-    // bg = minim.loadFile("feedbacker.wav", bufferSize);     // BORIS - feedbacker stretched reversed               //24m
-    // bg = minim.loadFile("dolphin.wav", bufferSize);        // BORIS - feedbacker stretched reversed               //24m
-    // bg = minim.loadFile("bochum2.wav", bufferSize);        // bochum 2                                            //7m
-    bg = minim.loadFile("bochum3.wav", bufferSize);        // bochum 3                                            //9m
-    // bg = minim.loadFile("bg2full.wav", bufferSize);        // A.G. Cook - windowlicker stretched                  //18m
-    // bg = minim.loadFile("bg3full.wav", bufferSize);        // Sufjan Stevens - Futile Devices stretched           //4.5m
-    // bg = minim.loadFile("bg4full.wav", bufferSize);        // Conan Mockassin stretched                           //21m
-    // bg = minim.loadFile("bg5full.wav", bufferSize);        // BORIS - flood 1 stretched                           //31m
-    // bg = minim.loadFile("snap0.wav", bufferSize);          // end of song test
-  }
-  // load the sound effects
-  if(soundEffects){
-    pop = minim.loadSample("pop.wav", bufferSize);
-    sLeft = minim.loadSample("perc1l.wav", bufferSize);
-    sRight = minim.loadSample("perc2l.wav", bufferSize);
-    snap0 = minim.loadSample("snap0.wav", bufferSize);
-    snap1 = minim.loadSample("snap1.wav", bufferSize);
-    snap2 = minim.loadSample("snap2.wav", bufferSize);
-    gameover = minim.loadSample("gameover.wav", bufferSize);
-  }
 
   logo =        loadShape("logolast.svg");
   logoOutline = loadShape("logooutline.svg");
@@ -157,7 +121,7 @@ public void setup() {
   totalScore = 0;
   currentAng = 0;
   highScorePosition = new PVector(pgWidth*1/2, pgHeight*6/7);
-  currentPos = new PVector(pgWidth/2, pgHeight*3/4);
+  currentPos = new PVector(pgWidth/2, pgHeight*2/4);
   initGame(); // set up the variables for game initialisation
 }
 
@@ -172,7 +136,6 @@ public void initGame() {
   rotVel = 0;   // current rotation velocity
   startVel = 3 * changeVel;
   scVel = 0.0013f * changeVel;
-  // sponge something is horribly broken here, dodger always turns the same speed
   rotAcc = random(0.002f, 0.003f); // current rotation acceleration
   scAcc = 0.00001f * changeVel;
   dodger = new Dodger(currentPos.x, currentPos.y, currentAng);
@@ -227,30 +190,10 @@ public void draw() {
   // popMatrix();
 }
 
-//// draw the progress of the song
-public void drawSongPos() {
-  pg.fill(255, 255, 255, 150);
-  pg.noStroke();
-  float poos = bg.position();
-  float leng = bg.length();
-  // pg.rect(pgWidth/2,   0,                       1*pgWidth, 100);
-  pg.rect(pgWidth/2, pgHeight-10, poos/leng*pgWidth, 10);
-  pg.fill(0);
-  // println(poos, leng);
-}
-
 //// perform a frame of the gameplay
 public void runGame() {
   // update next score (better move this to gameover)
   nextScore = score * scoreRate;
-
-  if(gameMode == music) {
-    bg.play();
-    // when the song is over it needs to be rewinded
-    if(bg.position() == bg.length()) {
-      runOver();
-    }
-  }
 
   pg.background(0, 0, 0);
   pg.textSize(30);
@@ -275,39 +218,25 @@ public void runGame() {
       enemies[eNum].hp--; // decrease life of enemies aura
       if(enemies[eNum].auraTouched == false && enemies[eNum].hp < 0) {
         // increase score depending on obstacle type (asteroid:1 ship:1.5 kamikaze:2.5 boss:5 )
-        if(enemies[eNum].type == "boss1" || enemies[eNum].type == "boss2" || enemies[eNum].type == "boss3" || enemies[eNum].type == "boss3b") {
-          score += 3 + score/50;
-          score += 3 + score/50;
-          bossActive = false;
-        } else if(enemies[eNum].type == "onoff") { // + 4.5
-          score += 4.5f;
-        } else if(enemies[eNum].type == "kamikaze") { // + 2.5
-          score += 2.5f;
-        } else if(enemies[eNum].type == "sinusoid") { // + 2
-          score += 2;
-        } else if(enemies[eNum].type == "ship") { // + 1.5
-          score += 1.5f;
-        } else { // + 1
-          score++;
-        }
-        //play a random snap sound
-        if(soundEffects) {
-          switch(frameCount % 3) {
-            case 0:
-              snap0.trigger();
-              break;
-            case 1:
-              snap1.trigger();
-              break;
-            case 2:
-              snap2.trigger();
-              break;
-          }
-        }
-        enemies[eNum].auraTouched = true;
-        enemies[eNum].popTimer = millis();
-        enemies[eNum].vel *= random(obstacleDrain/2, obstacleDrain);                                           // reduce obstacle velocity when aura disappears
-        enemies[eNum].rotationVel *= random(0.5f*obstacleRDrain, 1.5f*obstacleRDrain);  // reduce obstacle rotation when aura disappears
+      if(enemies[eNum].type == "boss1" || enemies[eNum].type == "boss2" || enemies[eNum].type == "boss3" || enemies[eNum].type == "boss3b") {
+        score += 3 + score/50;
+        score += 3 + score/50;
+        bossActive = false;
+      } else if(enemies[eNum].type == "onoff") { // + 4.5
+        score += 4.5f;
+      } else if(enemies[eNum].type == "kamikaze") { // + 2.5
+        score += 2.5f;
+      } else if(enemies[eNum].type == "sinusoid") { // + 2
+        score += 2;
+      } else if(enemies[eNum].type == "ship") { // + 1.5
+        score += 1.5f;
+      } else { // + 1
+        score++;
+      }
+      enemies[eNum].auraTouched = true;
+      enemies[eNum].popTimer = millis();
+      enemies[eNum].vel *= random(obstacleDrain/2, obstacleDrain);                                           // reduce obstacle velocity when aura disappears
+      enemies[eNum].rotationVel *= random(0.5f*obstacleRDrain, 1.5f*obstacleRDrain);  // reduce obstacle rotation when aura disappears
       }
     }
     enemies[eNum].drawAura();           // draws aura first so no overlap with enemies
@@ -324,10 +253,6 @@ public void runGame() {
   rotVel += rotAcc;                       // velocity increases by acceleration
   rotVel *= rotDamp;                      // dampen the rotation velocity
 
-  // draws the position in the song
-  if(gameMode == music) {
-    drawSongPos();
-  }
 }
 
 /////GAME LOGICKS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,7 +278,7 @@ public void newEnemy() {
     else if(score <= 200) bossSeed = PApplet.parseInt(random(1,3) - 0.5f);
     else if(score <= 300) bossSeed = PApplet.parseInt(random(1,4) - 0.5f);
     else if(score >= 300) bossSeed = PApplet.parseInt(random(2,4) - 0.5f);
-    println("making boss " + bossSeed + " with " + score + " score.");
+    // println("making boss " + bossSeed + " with " + score + " score.");
     switch(PApplet.parseInt(bossSeed) % 4) {
       case 0:
         thisType = "boss1";
@@ -407,14 +332,6 @@ public void newEnemy() {
 
 //// show the game over screen, store dodger position
 public void showScore() {
-  // play the game over sound
-  if(gameMode == music){
-    bg.pause(); //pause background sound
-  }
-  if(!gameOverSoundPlayed && soundEffects) {
-    gameover.trigger(); //play the game over sample
-    gameOverSoundPlayed = true; //so it doesnt play again
-  }
   //update the high score
   if (score > highScore){
     highScore = PApplet.parseInt(score);
@@ -426,7 +343,7 @@ public void showScore() {
   //draw dodger with current aura size
   if(!menuDodgerInit) {
     enemies[deathObst].auraTouched = false;
-    enemies[deathObst].hp = enemies[deathObst].maxHp;
+    enemies[deathObst].hp = enemies[deathObst].maxHp + 60;
     // make a dodger for the main menu
     rotVel = 0;   // current rotation velocity
     startVel = 3 * changeVel;
@@ -454,13 +371,6 @@ public void showScore() {
           " || next " + PApplet.parseInt(nextScore) +
           " || ", pgWidth*2/4, pgHeight*2/5 -50);
 
-  if(gameMode == music) {
-    if(bg.position() == bg.length()) {
-      pg.rectMode(CENTER);
-      pg.text("You have finished the song. Goodbye!", pgWidth*2/4, pgHeight*3.8f/4);
-    }
-  }
-
   // draw and update dodger
   dodger.update();
   dodger.bounds();                        // check if dodger is still in bounds (if not, put back)
@@ -487,10 +397,7 @@ public void showScore() {
   if(enemies[deathObst].collision() && enemies[deathObst].auraTouched && millis() > gameOverTime+500){
     overMenu();
   }
-  if(bg.position() != bg.length()) {
-    enemies[deathObst].draw();
-  }
-
+  enemies[deathObst].draw();
   rotAcc = (2 + score*scAcc) * changeVel; // increase the rotation velocity by rotation acceleration
   rotVel += rotAcc;                       // velocity increases by acceleration
   rotVel *= rotDamp;                      // dampen the rotation velocity
@@ -532,33 +439,10 @@ public void showMenu() {
   pg.strokeWeight(5);
   pg.fill(250, 250, 250, 100);
 
-  if(gameMode == music) {
-    pg.text("Music Mode", pgWidth*0.2f/4, pgHeight*0.15f/4);
-  } else {
-    pg.text("Endless", pgWidth*0.2f/4, pgHeight*0.15f/4);
-  }
-  pg.text("g to switch", pgWidth*0.2f/4, pgHeight*0.25f/4);
-  if(soundEffects) {
-    pg.text("m to mute", pgWidth*0.2f/4, pgHeight*0.35f/4);
-  } else {
-    pg.text("muted sfx", pgWidth*0.2f/4, pgHeight*0.35f/4);
-  }
-
   pg.textSize(80);
-  if(gameMode == music) {
-    if(bg.position() == bg.length()) {
-      pg.rectMode(CENTER);
-      pg.text("Take a break! (or press R to rewind)", pgWidth*2/4, pgHeight*3.6f/4);
-    } else {
-      pg.fill(255, 255, 255, max(0, 150-highScore));
-      pg.text("spacebar", pgWidth*2/4, pgHeight*3.45f/4 -50);
-      pg.text("enter void", pgWidth*2/4, pgHeight*3.7f/4 -50);
-    }
-    } else {
-    pg.fill(255, 255, 255, max(0, 150-highScore));
-    pg.text("spacebar", pgWidth*2/4, pgHeight*3.45f/4 -50);
-    pg.text("enter void", pgWidth*2/4, pgHeight*3.7f/4 -50);
-  }
+  pg.fill(255, 255, 255, max(0, 150-highScore));
+  // pg.text("spacebar", pgWidth*2/4, pgHeight*3.45/4 -50);
+  pg.text("enter void", pgWidth*2/4, pgHeight*3.7f/4 -50);
 
   // draw logo
   int border = 350;
@@ -583,7 +467,6 @@ public void showMenu() {
                    logoYstart +10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex,
                    logoXend   - 5 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
                    logoYend   -10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex);
-    //sponge this doesnt work somehow... dodger should be drawn in the foreground
     pg.translate(0, 0, 2);
     dodger.draw();
   popMatrix();
@@ -603,13 +486,6 @@ public void storeDodgerPos(){
   currentAng = dodger.a;
 }
 
-//// rewind the song and calculate a new starting value
-public void rewindSong() {
-  startScore = score * scoreRate/3 + highScore *scoreRate/4;
-  highScore *= (0.1f + scoreRate); //current max score rate is 0.9 so under ideal conditions highScore is preserved
-  bg.rewind();
-  setup();
-}
 ///////////////DIAGNOSE////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //// display a bar with information
@@ -692,6 +568,7 @@ public void overMenu() {
   // go to menu state
   gameOver = false;
   mainMenu = true;
+  mainMenuTime = millis();
   // update score
   score =  scoreBuffer * scoreRate;
   // update dodger position and angle
@@ -712,10 +589,6 @@ public void menuRun() {
 // from run game to game over
 public void runOver() {
   deathObst = eNum;
-  gameOverSoundPlayed = false;
-  if(gameMode == music) {
-    bg.pause();
-  }
   totalScore += score;
   storeDodgerPos();
   // put the current score into a buffer
@@ -728,7 +601,7 @@ public void runOver() {
 
 ///////////////INPUTS////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-public void keyPressed() { // listen for user input // touchStarted
+public void touchStarted() { // listen for user input // touchStarted
   if(gameOver && !clockwise  && keyCode == ' '){
     overMenu();
   } else if(mainMenu && !clockwise && keyCode == ' '){
@@ -781,37 +654,10 @@ public void keyPressed() { // listen for user input // touchStarted
       runOver();
       break;
     case 'P': // pause the game (and lose 5% of your score)
-      if(gameMode == music) {
-        bg.pause();
-      }
       score *= pausePenalty;
       mainMenu = true;
       break;
-    case 'M': // mute the sound effects
-      soundEffects = !soundEffects;
-      break;
-    case 'G': // toggle beween gameModes (only in mainMenu)
-      if(mainMenu) {
-        switch(gameMode){
-          case endless:
-            gameMode = music;
-            println("now in music mode");
-            setup();
-            return;
-          case music:
-          println("now in endless mode");
-            gameMode = endless;
-            return;
-        }
-      }
-      break; // mute the sound effects
-    case 'R': // rewind the song
-      if(gameMode == music) {
-        if(bg.position() == bg.length()) {
-          rewindSong();
-        }
-      }
-      break;
+
     }
   // cheats ie changing score and internal variables
   if (cheatsEnabled) {
@@ -838,7 +684,7 @@ public void keyPressed() { // listen for user input // touchStarted
   }
 }
 
-public void keyReleased() { // listen for user input // touchEnded
+public void touchEnded() { // listen for user input // touchEnded
   if(clockwise){
     // if(soundEffects) {
     //   sLeft.trigger();
@@ -1291,7 +1137,6 @@ class Enemy {
     if(type == "sinusoid" && !auraTouched){
       // slowly turn towards the player
       a += sin((frameCount + spawnTimer)/TWO_PI/5)/50;
-      println(a);
     }
     if(type == "boss2" && !auraTouched){
       // slowly turn towards the player
