@@ -30,7 +30,7 @@ class Dodger {
     // } else {
     //   pg.fill(255, 255, 255, 45);
     // }
-    auraTrans = (map(abs(rotVel), 0, 110, 30, 70) + auraTrans)/2;
+    auraTrans = (map(abs(rotVel), 0, 110, 50, 100) + auraTrans)/2;
     pg.fill(255, 255, 255, auraTrans);
     if(!scrType) {
       float intscore = score - score%1; // to get a round number

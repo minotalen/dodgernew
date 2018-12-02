@@ -10,7 +10,7 @@ PShape logoOutline;
 
 float score;
 float scoreBuffer;
-float startScore = 0;
+float startScore = 25;
 float highScore = 0;
 int totalScore = 100;
 int playTime;
@@ -82,7 +82,7 @@ float modifier;                       // used to modify some starting values
 /// Aura
 float auraFactor = 1.3;             // size of aura per obstacle size
 int auraAdd = 230;                  // added to size of aura
-int auraTransparency = 20;
+int auraTransparency = 45;
 
 void setup() {
   // setup screen
