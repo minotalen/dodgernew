@@ -36,7 +36,7 @@ PShape logoOutline;
 
 float score;
 float scoreBuffer;
-float startScore = 0;
+float startScore = 10;
 float highScore = 0;
 int totalScore = 100;
 int playTime;
@@ -126,12 +126,12 @@ public void setup() {
   int bufferSize = 512;
   // load song
   if(gameMode == music) {
-    // bg = minim.loadFile("song.wav", bufferSize);           // this is a placeholder to conserve filesize. replace with your own .wav music
+    bg = minim.loadFile("song.wav", bufferSize);           // this is a placeholder to conserve filesize. replace with your own .wav music
     // bg = minim.loadFile("betonkusten.wav", bufferSize);    // Betonkusten Mix - Eindleader Videonet & Nintendo Pantera //7m
     // bg = minim.loadFile("feedbacker.wav", bufferSize);     // BORIS - feedbacker stretched reversed               //24m
     // bg = minim.loadFile("dolphin.wav", bufferSize);        // BORIS - feedbacker stretched reversed               //24m
     // bg = minim.loadFile("bochum2.wav", bufferSize);        // bochum 2                                            //7m
-    bg = minim.loadFile("bochum3.wav", bufferSize);        // bochum 3                                            //9m
+    // bg = minim.loadFile("bochum3.wav", bufferSize);        // bochum 3                                            //9m
     // bg = minim.loadFile("bg2full.wav", bufferSize);        // A.G. Cook - windowlicker stretched                  //18m
     // bg = minim.loadFile("bg3full.wav", bufferSize);        // Sufjan Stevens - Futile Devices stretched           //4.5m
     // bg = minim.loadFile("bg4full.wav", bufferSize);        // Conan Mockassin stretched                           //21m
@@ -157,7 +157,7 @@ public void setup() {
   totalScore = 0;
   currentAng = 0;
   highScorePosition = new PVector(pgWidth*1/2, pgHeight*6/7);
-  currentPos = new PVector(pgWidth/2, pgHeight*3/4);
+  currentPos = new PVector(pgWidth/2, pgHeight*1.3f/4);
   initGame(); // set up the variables for game initialisation
 }
 
@@ -1160,7 +1160,7 @@ class Enemy {
       pg.rotate(sin((frameCount + spawnTimer)/TWO_PI/5 )/2);
       pg.stroke(0);
       pg.fill(0);
-      if(!auraTouched) pg.triangle(0, size*2, -size/3, size, size/3, size);
+      if(!auraTouched) pg.triangle(0, -size*2, -size/3, -size, size/3, -size);
       // pg.ellipse(0, size*2, size/4, size/4);
       pg.popMatrix();
     } else if(type == "kamikaze") {
@@ -1291,7 +1291,6 @@ class Enemy {
     if(type == "sinusoid" && !auraTouched){
       // slowly turn towards the player
       a += sin((frameCount + spawnTimer)/TWO_PI/5)/50;
-      println(a);
     }
     if(type == "boss2" && !auraTouched){
       // slowly turn towards the player

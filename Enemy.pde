@@ -211,7 +211,7 @@ class Enemy {
       pg.rotate(sin((frameCount + spawnTimer)/TWO_PI/5 )/2);
       pg.stroke(0);
       pg.fill(0);
-      if(!auraTouched) pg.triangle(0, size*2, -size/3, size, size/3, size);
+      if(!auraTouched) pg.triangle(0, -size*2, -size/3, -size, size/3, -size);
       // pg.ellipse(0, size*2, size/4, size/4);
       pg.popMatrix();
     } else if(type == "kamikaze") {
@@ -342,7 +342,6 @@ class Enemy {
     if(type == "sinusoid" && !auraTouched){
       // slowly turn towards the player
       a += sin((frameCount + spawnTimer)/TWO_PI/5)/50;
-      println(a);
     }
     if(type == "boss2" && !auraTouched){
       // slowly turn towards the player
