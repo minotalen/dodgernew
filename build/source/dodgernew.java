@@ -218,13 +218,14 @@ public void draw() {
   pg.endDraw();
   image(pg, 0, 0, width, height);
   /// Stuff for screen recording / centering dodger
-  // pg.rect(pgWidth/2, pgHeight/2, pgWidth-9, pgHeight-9);
-  // pg.e / ndDraw();
+  // pg.endDraw();
   // pushMatrix();
-  // translate(pgWidth/4-dodger.pos.x, pgHeight/4-dodger.pos.y);
+  // translate(pgWidth/2-dodger.pos.x, pgHeight/2-dodger.pos.y);
   // println(dodger.pos.x, dodger.pos.y);
-  // image(pg, 0, 0, width*2, height*2);
+  // image(pg, -width/2, -height/2, width*4/2, height*4/2);
   // popMatrix();
+
+
 }
 
 //// draw the progress of the song
@@ -911,8 +912,10 @@ class Dodger {
     // rect(0, 0, sin(a)*30, 50);
     pg.stroke(255);
     pg.strokeWeight(6);
-    pg.line(-0.5f * size, -1 * size, 0, 1 * size);
-    pg.line(0.5f * size, -1 * size, 0, 1 * size);
+    float legMod = map(rotVel, 0, 100, 0, 10);
+    if(!clockwise) legMod *= -1;
+    pg.line(-0.5f * size, -1 * size + legMod, 0, 1 * size);
+    pg.line(0.5f * size, -1 * size - legMod, 0, 1 * size);
     pg.line(-0.4f * size, -0.6f * size, 0.4f * size, -0.6f * size); //back line
     pg.popMatrix();
   }

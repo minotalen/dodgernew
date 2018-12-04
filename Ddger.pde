@@ -62,8 +62,10 @@ class Dodger {
     // rect(0, 0, sin(a)*30, 50);
     pg.stroke(255);
     pg.strokeWeight(6);
-    pg.line(-0.5 * size, -1 * size, 0, 1 * size);
-    pg.line(0.5 * size, -1 * size, 0, 1 * size);
+    float legMod = map(rotVel, 0, 100, 0, 10);
+    if(!clockwise) legMod *= -1;
+    pg.line(-0.5 * size, -1 * size + legMod, 0, 1 * size);
+    pg.line(0.5 * size, -1 * size - legMod, 0, 1 * size);
     pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
     pg.popMatrix();
   }

@@ -200,13 +200,14 @@ void draw() {
   pg.endDraw();
   image(pg, 0, 0, width, height);
   /// Stuff for screen recording / centering dodger
-  // pg.rect(pgWidth/2, pgHeight/2, pgWidth-9, pgHeight-9);
-  // pg.e / ndDraw();
+  // pg.endDraw();
   // pushMatrix();
-  // translate(pgWidth/4-dodger.pos.x, pgHeight/4-dodger.pos.y);
+  // translate(pgWidth/2-dodger.pos.x, pgHeight/2-dodger.pos.y);
   // println(dodger.pos.x, dodger.pos.y);
-  // image(pg, 0, 0, width*2, height*2);
+  // image(pg, -width/2, -height/2, width*4/2, height*4/2);
   // popMatrix();
+
+
 }
 
 //// draw the progress of the song
