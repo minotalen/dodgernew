@@ -1,30 +1,26 @@
-//// this is the dodger class, which is an entity controlled by player input
 class Enemy {
-  //the obstacle has x and y coordinates and an angle
+  //the dodger has x and y coordinates and an angle
   PVector pos;
   PVector move;
   PVector nPos;
   String type;
-  //ship, kamikaze, asteroid, onoff
-  //boss 1 2 3 3b
-  int hp; // health points of aura
-  int maxHp; // health points of aura
-  float a; //
+  //ship, kamikaze, asteroid
+  int hp; // health points of circle
+  int maxHp; // health points of circle
+  float a;
   float size;
   float vel;
   float [] rndmAst = new float[16]; //random zahlen array fuer asteroid vertex
 
-  boolean auraTouched = false;
-  boolean auraActive = true;
-  float bossCFactor = 1.5;              // boss has smaller aura and no add
+  boolean circleTouched = false;
+  boolean circleActive = true;
+  float bossCFactor = 1.5;              // boss has smaller circle and no add
   int spawnTimer = millis();
   int popTimer = 0;                   // timer that gets set when the aura gets harvested
   int popDuration = 450;             // duration of the aura harvest effect (aura lights up and then disappears)
   int untouchable = 6000; // time the bosses are untouchable
   float transparency;
   float rotation = random(-1, 1);
-  float rotationVel = 0.03;
-  float rotationPos = 0;
 
   //// construct the obstacle
   Enemy (float _x, float _y, float _a, float _vel, String _type) {
@@ -32,15 +28,6 @@ class Enemy {
     a = _a;
     type = _type;
     if(type == "asteroid"){
-      size = startSize + score*scESize;
-      size *= random(0.7, 1.4); // RNG for obstacle size
-      vel = _vel * random(0.7, 1.3) + score * scEVel;
-      for (int i=0; i < rndmAst.length; i++){
-        rndmAst[i] = random(size/4, size*5/4);
-      }
-      hp = int((35 + score/50) / changeVel);
-    }
-    if(type == "sinusoid"){
       size = startSize + score*scESize;
       size *= random(0.7, 1.4); // RNG for obstacle size
       vel = _vel * random(0.7, 1.3) + score * scEVel;
@@ -70,7 +57,7 @@ class Enemy {
     if(type == "onoff"){
       size = startSize + score*scESize;
       size *= random(0.6, 1.2); // RNG for obstacle size
-      vel = _vel * random(0.4, 0.8) + score * scEVel;
+      vel = _vel * random(0.45, 0.9) + score * scEVel;
       //set angle to player
       PVector nPos = new PVector(-pos.x + dodger.pos.x, -pos.y + dodger.pos.y);
       a = nPos.heading() - HALF_PI;
@@ -101,7 +88,7 @@ class Enemy {
       vel = (dodger.vel + score*scVel) * 1;
       hp = int(220 + modifier / changeVel);
       a = dodger.a + PI;
-      bossCFactor = bossCFactor * 2;
+      bossCFactor = bossCFactor * 1.5;
     }
     if(type == "boss3b"){
       size = dodger.size*2;
@@ -114,19 +101,19 @@ class Enemy {
   }
 
   //// draw the aura of the obstacle
-  void drawAura() {
+  void drawCircle() {
     pg.pushMatrix();
     pg.translate(pos.x, pos.y);
-    if(!auraTouched && auraActive) {
+    if(!circleTouched && circleActive) {
       pg.noStroke();
       if(type == "boss1" || type == "boss2" || type == "boss3" || type == "boss3") {
-        pg.fill(255, 255, 255, auraTransparency + map(hp, 15, maxHp, 0, 60) );
+        pg.fill(255, 255, 255, circleTransparency + map(hp, 15, maxHp, 0, 60) );
         pg.ellipse(0, 0, 2*size*bossCFactor, 2*size*bossCFactor);
         pg.fill(0);
         pg.ellipse(0, 0, size, size);
       } else {
-        pg.fill(255, 255, 255, auraTransparency + map(hp, 15, maxHp, 0, 60) );
-        pg.ellipse(0, 0, 2*size*auraFactor + auraAdd, 2*size*auraFactor + auraAdd);
+        pg.fill(255, 255, 255, circleTransparency + map(hp, 15, maxHp, 0, 60) );
+        pg.ellipse(0, 0, 2*size*circleFactor + circleAdd, 2*size*circleFactor + circleAdd);
       }
     }
     if(popTimer != 0 && popTimer > millis() - popDuration ) {
@@ -135,22 +122,23 @@ class Enemy {
 
       pg.noStroke();
       if(type == "boss1" || type == "boss2" || type == "boss3" || type == "boss3") {
-        pg.fill(255, 255, 255, auraTransparency + popTransparency );
+        pg.fill(255, 255, 255, circleTransparency + popTransparency );
         pg.ellipse(0, 0, 2*size*bossCFactor, 2*size*bossCFactor);
         pg.fill(0);
         pg.ellipse(0, 0, size, size);
       } else {
         pg.fill(255, 255, 255, popTransparency );
-        float auraSize = map(millis() - popTimer, 0, popDuration, 1, 0);
-        auraSize *= 2*size*auraFactor + auraAdd;
-        pg.ellipse(0, 0, auraSize, auraSize);
+        float circleSize = map(millis() - popTimer, 0, popDuration, 1, 0);
+        println(circleSize);
+        circleSize *= 2*size*circleFactor + circleAdd;
+        pg.ellipse(0, 0, circleSize, circleSize);
       }
     }
-    if(!auraActive) {
+    if(!circleActive) {
       pg.fill(0, 0, 0, 60);
       pg.strokeWeight(1);
       pg.stroke(255, 255, 255);
-      pg.ellipse(0, 0, 2*size*auraFactor + auraAdd, 2*size*auraFactor + auraAdd);
+      pg.ellipse(0, 0, 2*size*circleFactor + circleAdd, 2*size*circleFactor + circleAdd);
     }
     pg.noStroke();
     pg.popMatrix();
@@ -165,7 +153,7 @@ class Enemy {
     pg.pushMatrix();
     pg.translate(pos.x, pos.y);
     pg.rotate(a);
-    if(!auraTouched) {
+    if(!circleTouched) {
       pg.stroke(255);
       pg.fill(0);
     } else {
@@ -189,8 +177,7 @@ class Enemy {
               pg.vertex(-0.4 * size, -1 * size);
             pg.endShape();
     } else if(type == "asteroid") {
-      rotationPos = rotationPos + rotationVel * rotation;
-      pg.rotate(rotationPos);
+      pg.rotate(frameCount*0.03*rotation);
       pg.beginShape();
         pg.vertex(0, -rndmAst[1]);
         pg.vertex(rndmAst[2], 0);
@@ -199,58 +186,22 @@ class Enemy {
         pg.vertex(-12, -12);
         pg.vertex(0, -rndmAst[1]);
       pg.endShape();
-    } else if(type == "sinusoid") {
-      pg.beginShape();
-        pg.vertex(-0.5 * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5 * size ,   -1 * size);
-        pg.vertex(0          , -0.3 * size);
-        pg.vertex(-0.5 * size,   -1 * size);
-      pg.endShape();
-      pg.pushMatrix();
-      pg.rotate(sin((frameCount + spawnTimer)/TWO_PI/5 )/2);
-      pg.stroke(0);
-      pg.fill(0);
-      if(!auraTouched) pg.triangle(0, -size*2, -size/3, -size, size/3, -size);
-      // pg.ellipse(0, size*2, size/4, size/4);
-      pg.popMatrix();
     } else if(type == "kamikaze") {
       pg.beginShape();
-        pg.vertex(-0.5 * size,   -1 * size);
-        pg.vertex(0          ,    1 * size);
-        pg.vertex(0.5 * size ,   -1 * size);
-        pg.vertex(0          , -0.3 * size);
-        pg.vertex(-0.5 * size,   -1 * size);
+      pg.vertex(-0.5 * size,   -1 * size);
+      pg.vertex(0          ,    1 * size);
+      pg.vertex(0.5 * size ,   -1 * size);
+      pg.vertex(0          , -0.3 * size);
+      pg.vertex(-0.5 * size,   -1 * size);
       pg.endShape();
     } else if(type == "onoff") {
-      pg.beginShape();
-        pg.vertex(-1 * size, -1 * size);
-        pg.vertex(-0.7 * size, -1 * size);
-        pg.vertex(-0.7 * size, -0.8 * size);
-        pg.vertex(0.7 * size, -0.8 * size);
-        pg.vertex(0.7 * size, -1 * size);
-        pg.vertex(1 * size, -1 * size);
-        pg.vertex(1 * size, -0.35 * size);
-        pg.vertex(0.5 * size, -0.1 * size);
-        //insert lil wing here
-        //-------------------
-        pg.vertex(0.5 * size, 0.5 * size);
-        pg.vertex(0, 1 * size);
-        pg.vertex(-0.5 * size, 0.5 * size);
-        //insert lil wing here
-        //-------------------
-        pg.vertex(-0.5 * size, -0.1 * size);
-        pg.vertex(-1 * size, -0.35 * size);
-        pg.vertex(-1 * size, -1 * size);
-        //vertex(-0.8 * size, -1 * size);
-        //vertex(-0.8 * size, -0.8 * size);
-        //vertex(-0.8 * size, -0.8 * size);
-        pg.vertex(-0.8 * size, -1 * size);
-        pg.vertex(-1 * size, -1 * size);
-      pg.endShape();
+      pg.ellipse(0, 0, size, size);
+      pg.stroke(0);
+      pg.fill(0);
+      pg.ellipse(0, size, size/3, size/3);
     } else if(type == "boss1") {
       transparency = map(millis() - spawnTimer, 0, untouchable, 55, 255);
-      if(!auraTouched) {
+      if(!circleTouched) {
         pg.stroke(255, 255, 255, transparency);
         pg.fill(255-transparency, 255-transparency, 255-transparency);
       } else {
@@ -292,7 +243,7 @@ class Enemy {
       // pg.ellipse(0, size, size/3, size/3);
     } else if(type == "boss2") {
       transparency = map(millis() - spawnTimer, 0, untouchable, 55, 255);
-      if(!auraTouched) {
+      if(!circleTouched) {
         pg.stroke(255, 255, 255, transparency);
         pg.fill(255-transparency, 255-transparency, 255-transparency);
       } else {
@@ -306,7 +257,7 @@ class Enemy {
       pg.ellipse(0, size, size/3, size/3);
     } else if(type == "boss3" || type == "boss3b") {
       transparency = map(millis() - spawnTimer, 0, untouchable, 55, 255);
-      if(!auraTouched) {
+      if(!circleTouched) {
         pg.stroke(255, 255, 255, transparency);
         pg.fill(255-transparency, 255-transparency, 255-transparency);
       } else {
@@ -325,33 +276,29 @@ class Enemy {
 
   //// update obstacle position
   void update() {
-    if(type == "kamikaze" && !auraTouched){
+    if(type == "kamikaze" && !circleTouched){
       // slowly turn towards the player
       a = turnTowardsPlayer(0.05);
     }
-    if(type == "onoff" && !auraTouched){
+    if(type == "onoff" && !circleTouched){
       // turn towards the player
       a = turnTowardsPlayer(0.7);
       // toggle aura on off
       int toggleTime = 6000;
       if(millis() - spawnTimer > toggleTime) {
-        auraActive = !auraActive;
+        circleActive = !circleActive;
         spawnTimer = millis();
       }
     }
-    if(type == "sinusoid" && !auraTouched){
-      // slowly turn towards the player
-      a += sin((frameCount + spawnTimer)/TWO_PI/5)/50;
-    }
-    if(type == "boss2" && !auraTouched){
+    if(type == "boss2" && !circleTouched){
       // slowly turn towards the player
       a = turnTowardsPlayer(0.02);
     }
-    if(type == "boss3" && !auraTouched){
+    if(type == "boss3" && !circleTouched){
       // slowly turn towards the player
       a = dodger.a + PI;
     }
-    if(type == "boss3b" && !auraTouched){
+    if(type == "boss3b" && !circleTouched){
       // slowly turn towards the player
       a = dodger.a + HALF_PI;
     }
@@ -367,18 +314,18 @@ class Enemy {
       // put boss back into the field if aura was not broken. Also, increase it's velocity.
       boolean bounded = false; // went against boundary?
       // left
-      if( (pos.x < 0-bossCFactor || pos.x > pgWidth+bossCFactor || pos.y < 0-bossCFactor || pos.y > pgHeight+bossCFactor) && !auraTouched){
+      if( (pos.x < 0-bossCFactor || pos.x > pgWidth+bossCFactor || pos.y < 0-bossCFactor || pos.y > pgHeight+bossCFactor) && !circleTouched){
         a = turnTowardsPlayer(1);
         bounded = true;
-      //if one of the above and auraTouched
-      } else if (bounded && !auraTouched) {
-          if(auraTouched) return true;
+      //if one of the above and circleTouched
+      } else if (bounded && !circleTouched) {
+          if(circleTouched) return true;
           vel *= 1.1;
       }
       return false;
     } else if(type == "boss2"){
       return false;
-    } else if((type == "boss3" || type == "boss3b") && !auraTouched){
+    } else if((type == "boss3" || type == "boss3b") && !circleTouched){
       if(pos.x < 0+size*2/3) {
         pos.x = 0+size*2/3;
       } else if(pos.x > pgWidth-size*2/3) {
@@ -390,9 +337,9 @@ class Enemy {
         pos.y = pgHeight-size*2/3;
       }
       return false;
-    } else if((type == "boss3" || type == "boss3b") && auraTouched && (pos.x < 0-bossCFactor || pos.x > pgWidth+bossCFactor || pos.y < 0-bossCFactor || pos.y > pgHeight+bossCFactor) ) {
+    } else if((type == "boss3" || type == "boss3b") && circleTouched && (pos.x < 0-bossCFactor || pos.x > pgWidth+bossCFactor || pos.y < 0-bossCFactor || pos.y > pgHeight+bossCFactor) ) {
       return true;
-    } else if( pos.x < 0-1.1*(auraFactor+auraAdd) || pos.x > pgWidth+1.1*(auraFactor+auraAdd)|| pos.y < 0-1.1*(auraFactor+auraAdd) || pos.y > pgHeight+1.1*(auraFactor+auraAdd) ) {
+    } else if( pos.x < 0-1.1*(circleFactor+circleAdd) || pos.x > pgWidth+1.1*(circleFactor+circleAdd)|| pos.y < 0-1.1*(circleFactor+circleAdd) || pos.y > pgHeight+1.1*(circleFactor+circleAdd) ) {
       return true;
     } else {
       return false;
@@ -418,8 +365,8 @@ class Enemy {
   }
 
   //// check if dodger collides with the enemies aura
-  boolean auraCollision() {
-    if (type == "onoff" && !auraActive) {
+  boolean circleCollision() {
+    if (type == "onoff" && !circleActive) {
       return false;
     }
     if (type == "boss1"  || type == "boss2") {
@@ -436,7 +383,7 @@ class Enemy {
         return false;
       }
     }
-    if(pos.dist(dodger.pos) <= (size*auraFactor + auraAdd/2 + dodger.size) ) {
+    if(pos.dist(dodger.pos) <= (size*circleFactor + circleAdd/2 + dodger.size) ) {
       return true;
     } else {
       return false;

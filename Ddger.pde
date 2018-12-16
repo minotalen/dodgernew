@@ -1,4 +1,3 @@
-//// this is the dodger class, which is an entity controlled by player input
 class Dodger {
 
   //the dodger has x and y coordinates and an angle
@@ -8,7 +7,7 @@ class Dodger {
   float size = dodgerSize;
   float vel = startVel;
   float auraTrans = 0;
-                     // scales dodger aura
+                         // scales dodger aura
 
   Dodger (float _x, float _y, float _a) {
     pos = new PVector(_x, _y);
@@ -16,7 +15,7 @@ class Dodger {
   }
 
   //// draw the aura of dodger
-  void drawAura(boolean scrType, PVector cPos, int scale) {
+  void drawCircle(boolean scrType, PVector cPos, int scale) {
     // scrType false: score true:highScore
 
     pg.pushMatrix();
@@ -30,15 +29,15 @@ class Dodger {
     // } else {
     //   pg.fill(255, 255, 255, 45);
     // }
-    auraTrans = (map(abs(rotVel), 0, 110, 30, 70) + auraTrans)/2;
+    // map the transparencz of dogers aura to rotation velocity for more action
+    auraTrans = (map(abs(rotVel), 0, 110, 30, 85)/3 + auraTrans)*2/3;
     pg.fill(255, 255, 255, auraTrans);
     if(!scrType) {
-      float intscore = score - score%1; // to get a round number
-      pg.ellipse(0, 0, 2*size*(                             intscore% 9 /9 * scale/7),                       2*size*(     intscore% 9 /9 * scale/7) );
-      pg.ellipse(0, 0, 2*size*(                ((intscore- (intscore%9))/9)%9/9 * scale/5),              2*size*( ((intscore- (intscore%9))/9)%9/9 * scale/5) );
+      pg.ellipse(0, 0, 2*size*(                             score% 9 /9 * scale/7),                       2*size*(     score% 9 /9 * scale/7) );
+      pg.ellipse(0, 0, 2*size*(                ((score- (score%9))/9)%9/9 * scale/5),              2*size*( ((score- (score%9))/9)%9/9 * scale/5) );
       pg.stroke(255, 255, 255, 100);
       pg.strokeWeight(4);
-      pg.ellipse(0, 0, 2*size*(   ((intscore- (intscore%81) )/81)%9/9 * scale/4), 2*size*(  ((intscore- (intscore%81) )/81)%9/9* scale/4) );
+      pg.ellipse(0, 0, 2*size*(   ((score- (score%81) )/81)%9/9 * scale/4), 2*size*(  ((score- (score%81) )/81)%9/9* scale/4) );
       pg.noStroke();
       pg.fill(0);
       pg.ellipse(0, 0, size, size);
@@ -62,11 +61,9 @@ class Dodger {
     // rect(0, 0, sin(a)*30, 50);
     pg.stroke(255);
     pg.strokeWeight(6);
-    float legMod = map(rotVel, 0, 100, 0, 10);
-    if(!clockwise) legMod *= -1;
-    pg.line(-0.5 * size, -1 * size + legMod, 0, 1 * size);
-    pg.line(0.5 * size, -1 * size - legMod, 0, 1 * size);
-    pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
+    pg.line(-0.5 * size, -1 * size, 0, 1 * size);
+    pg.line(0.5 * size, -1 * size, 0, 1 * size);
+    // pg.line(-0.4 * size, -0.6 * size, 0.4 * size, -0.6 * size); //back line
     pg.popMatrix();
   }
 
@@ -85,9 +82,6 @@ class Dodger {
 
   //// check if dodger is inside the boundaries
   void bounds() {
-    if(mainMenu && (pos.x < 0+100 || pos.x > pgWidth-100 || pos.y < 0+100 || pos.y > pgHeight-100)) {
-      menuRun();
-    }
     if(pos.x < 0+size*2/3) {
       pos.x = 0+size*2/3;
     } else if(pos.x > pgWidth-size*2/3) {
