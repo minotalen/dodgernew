@@ -16,6 +16,9 @@ int pgHeight = 980;
 PShape logo;
 PShape logoOutline;
 
+// user interface elements
+UI ui;
+
 float score;
 float scoreBuffer;
 float startScore = 10;
@@ -103,6 +106,9 @@ void setup() {
   background(0);
   mainMenu = true;
 
+  //load UI elements
+  ui = new UI();
+
   //sounds
   minim = new Minim(this);
   int bufferSize = 512;
@@ -180,10 +186,10 @@ void initGame() {
 
 //// draw function with gamestates
 void draw() {
+  updateRate();
   // draw everything to the canvas with pgWidth*pgHeight
   pg.beginDraw();
   pg.background(0);
-
   if(gameOver){
     showScore();
   } else if(mainMenu){
@@ -192,12 +198,11 @@ void draw() {
     runGame();
     drawBar();
   }
-
-  // scale everything from the canvas to the actual screen
   pg.fill(0, 0, 0, 0);
   pg.stroke(255);
   pg.strokeWeight(1);
   pg.endDraw();
+  // scale everything from the canvas to the actual screen
   image(pg, 0, 0, width, height);
   /// Stuff for screen recording / centering dodger
   // pg.endDraw();
@@ -208,18 +213,6 @@ void draw() {
   // popMatrix();
 
 
-}
-
-//// draw the progress of the song
-void drawSongPos() {
-  pg.fill(255, 255, 255, 150);
-  pg.noStroke();
-  float poos = bg.position();
-  float leng = bg.length();
-  // pg.rect(pgWidth/2,   0,                       1*pgWidth, 100);
-  pg.rect(pgWidth/2, pgHeight-10, poos/leng*pgWidth, 10);
-  pg.fill(0);
-  // println(poos, leng);
 }
 
 //// perform a frame of the gameplay
@@ -386,6 +379,23 @@ void newEnemy() {
   modifier = 0; // reset the modifier (used in obstacle class for special enemies)
 }
 
+//// update scoreRate
+void updateRate() {
+  scoreRate = (5 + min(1, map(totalScore, 0, 2000, 0, 1)) + min(1, map(totalScore, 2000,  10000, 0, 1)) +
+                   min(1, map(score,      0,  200, 0, 1)) + min(1, map(   highScore,    0,   500, 0, 1))) /10;            // watch an ad or buy the game to keep +5% of your score
+}
+
+//// draw the progress of the song
+void drawSongPos() {
+  pg.fill(255, 255, 255, 150);
+  pg.noStroke();
+  float poos = bg.position();
+  float leng = bg.length();
+  // pg.rect(pgWidth/2,   0,                       1*pgWidth, 100);
+  pg.rect(pgWidth/2, pgHeight-10, poos/leng*pgWidth, 10);
+  pg.fill(0);
+  // println(poos, leng);
+}
 ///// sponge draw a white outline rectangle then fill it with scoreRate
 
 //// show the game over screen, store dodger position
@@ -405,6 +415,8 @@ void showScore() {
   // make the animation for the shrinking aura
   if(frameCount - scoreDropFrame <= scoreDropDuration) {
     score = map(frameCount - scoreDropFrame , 0, scoreDropDuration, scoreBuffer, nextScore);
+  } else {
+    score = nextScore;
   }
   //draw dodger with current aura size
   if(!menuDodgerInit) {
@@ -443,7 +455,13 @@ void showScore() {
       pg.text("You have finished the song. Goodbye!", pgWidth*2/4, pgHeight*3.8/4);
     }
   }
+  pg.textSize(55);
+  pg.fill(255);
+  pg.text("collide to",   pgWidth*2.6/4, pgHeight*8/12);
+  pg.text("live again",   pgWidth*3.15/4, pgHeight*8.95/12);
 
+  // draw UI for visualizing rate
+  drawRate();
   // draw and update dodger
   dodger.update();
   dodger.bounds();                        // check if dodger is still in bounds (if not, put back)
@@ -453,8 +471,8 @@ void showScore() {
   enemies[deathObst].update(); // update obstacle position
   if(enemies[deathObst].bounds()) {
     enemies[deathObst].hp = enemies[deathObst].maxHp;
-    enemies[deathObst].pos.x = random(pgWidth/2) + pgWidth/4;
-    enemies[deathObst].pos.y = random(pgHeight/2) + pgHeight/4;
+    enemies[deathObst].pos.x = pgWidth/2;
+    enemies[deathObst].pos.y = pgHeight/2;
     enemies[deathObst].vel *= random(obstacleDrain/3, obstacleDrain/2);                  // reduce obstacle velocity when aura disappears
   }
   enemies[deathObst].drawAura();           // draws aura first so no overlap with enemies
@@ -486,6 +504,13 @@ void showScore() {
 void showMenu() {
   // lights();
   pg.background(0);
+  // draw rectangle to show where start boundaries are
+  pg.noFill();
+  pg.stroke(255, 255, 255, 222);
+  strokeWeight(15);
+  pg.rectMode(CORNERS);
+  pg.rect(100, 100, pgWidth-100, pgHeight-100);
+
   pg.fill(255);
   pg.stroke(255);
   pg.strokeWeight(6);
@@ -504,16 +529,16 @@ void showMenu() {
   if(highScore != 0) {
     dodger.drawAura(true, highScorePosition, 200);
   }
-  if(highScore >= 150) {
+
+  if(highScore >= 200) {
     pg.textSize(70);
     pg.fill(0);
     pg.text(int(highScore), pgWidth*2/4, pgHeight*3.4/4);
   }
-
   pg.textSize(20);
   pg.stroke(250);
   pg.strokeWeight(5);
-  pg.fill(250, 250, 250, 100);
+  pg.fill(250, 250, 250, 200);
 
   if(gameMode == music) {
     pg.text("Music Mode", pgWidth*0.2/4, pgHeight*0.15/4);
@@ -527,53 +552,63 @@ void showMenu() {
     pg.text("muted sfx", pgWidth*0.2/4, pgHeight*0.35/4);
   }
 
-  pg.textSize(80);
+  pg.textSize(55);
   if(gameMode == music) {
     if(bg.position() == bg.length()) {
       pg.rectMode(CENTER);
       pg.text("Take a break! (or press R to rewind)", pgWidth*2/4, pgHeight*3.6/4);
+      } else {
+        pg.fill(255, 255, 255, max(0, 200-highScore));
+        pg.text("cross line to",   pgWidth*2.8/4, pgHeight*10.35/12);
+        pg.text("enter void", pgWidth*2.2/4, pgHeight*11.1/12);
+      }
     } else {
-      pg.fill(255, 255, 255, max(0, 150-highScore));
-      pg.text("spacebar", pgWidth*2/4, pgHeight*3.45/4 -50);
-      pg.text("enter void", pgWidth*2/4, pgHeight*3.7/4 -50);
+      pg.fill(255, 255, 255, max(0, 200-highScore));
+      pg.text("cross line to",   pgWidth*2.8/4, pgHeight*10.35/12);
+      pg.text("enter void", pgWidth*2.2/4, pgHeight*11.1/12);
     }
-    } else {
-    pg.fill(255, 255, 255, max(0, 150-highScore));
-    pg.text("spacebar", pgWidth*2/4, pgHeight*3.45/4 -50);
-    pg.text("enter void", pgWidth*2/4, pgHeight*3.7/4 -50);
-  }
 
-  // draw logo
-  int border = 350;
-  // sponge the logos need to be scaled to really apply the offset
-  // would be much better anyways because that way they keep their proportions
-  float logoOffX = -11; //(logoOutline.width - logo.width)/2;
-  float logoOffY = -10;//(logoOutline.height - logo.height)/2;
-  int logoXstart = 100;
-  int logoXend = pgWidth - 170;
-  int logoYstart = 255;
-  int logoYend = 520;
-  logoOutline.setFill(color(min(255, highScore*3/5), min(255, highScore*3/5), min(255, highScore*3/5)) );
-  pushMatrix();
+    // draw logo
+    int border = 350;
+    // sponge the logos need to be scaled to really apply the offset
+    // would be much better anyways because that way they keep their proportions
+    float logoOffX = -11; //(logoOutline.width - logo.width)/2;
+    float logoOffY = -10;//(logoOutline.height - logo.height)/2;
+    int logoXstart = 100;
+    int logoXend = pgWidth - 170;
+    int logoYstart = 255;
+    int logoYend = 520;
+    logoOutline.setFill(color(min(255, highScore*3/5), min(255, highScore*3/5), min(255, highScore*3/5)) );
+    pushMatrix();
     pg.translate(0, 0, 1);
     pg.shape(logoOutline, logoXstart,
-                          logoYstart,
-                          logoXend,
-                          logoYend);
-    logo.setFill(color(0, 0, 0));
+      logoYstart,
+      logoXend,
+      logoYend);
+      logo.setFill(color(0, 0, 0));
     int logoFlex = 30;
     pg.shape(logo, logoXstart +15 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
-                   logoYstart +10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex,
-                   logoXend   - 5 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
-                   logoYend   -10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex);
+    logoYstart +10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex,
+    logoXend   - 5 + logoOffX - (dodger.pos.x-pgWidth /2)/logoFlex,
+    logoYend   -10 + logoOffY - (dodger.pos.y-pgHeight/2)/logoFlex);
     //sponge this doesnt work somehow... dodger should be drawn in the foreground
     pg.translate(0, 0, 2);
     dodger.draw();
-  popMatrix();
+    popMatrix();
 
-  drawBar();
-  // wait for key input to start new game
-  // pass on the angle and position to initGame
+
+      drawBar();
+      // wait for key input to start new game
+      // pass on the angle and position to initGame
+    }
+
+void drawRate() {
+  ui.fillBox("score",  pgWidth*1/7, pgHeight*17/24,  pgWidth*1/7, 60, score,      0, 200 , true);
+  ui.fillBox("high",   pgWidth*2/7, pgHeight*17/24,  pgWidth*1/7, 60, highScore,  0, 500 , true);
+  ui.fillBox("total",  pgWidth*3/7, pgHeight*17/24,  pgWidth*1/7, 60, totalScore, 0, 2000 , true);
+  ui.fillBox("",       pgWidth*4/7, pgHeight*17/24,  pgWidth*1/7, 60, totalScore, 2000, 8000, true);
+  ui.fillBox("",       pgWidth*1/7, pgHeight*19/24,  pgWidth*5/7, 60, scoreRate,  0.5, 1 , false);
+  ui.fillBox("rate", pgWidth*1/7,pgHeight*19/24+60,  pgWidth*5/7, 60, scoreRate,  0, 0.5 , false);
 }
 
 boolean randomBool() {
@@ -597,8 +632,7 @@ void rewindSong() {
 
 //// display a bar with information
 void drawBar() {
-  scoreRate = (5 + min(1, map(totalScore, 0, 2000, 0, 1)) + min(1.5, map(totalScore,    0,  8000, 0, 1)) +
-                   min(1, map(scoreBuffer,      0,  200, 0, 1)) + min(1, map(   highScore,    0,   500, 0, 1))) /10;            // watch an ad or buy the game to keep +5% of your score
+
   pg.textSize(22);
   pg.fill(255, 255, 255, 150);
   pg.noStroke();
@@ -699,6 +733,8 @@ void runOver() {
   if(gameMode == music) {
     bg.pause();
   }
+  // update next score
+  nextScore = score * scoreRate;
   totalScore += score;
   storeDodgerPos();
   // put the current score into a buffer
